@@ -1,6 +1,6 @@
 from django.core.exceptions import RequestDataTooBig
 from django.db import models
-
+from django.db.models import Count
 
 class User(models.Model):
     name = models.CharField('Имя', max_length=255)
@@ -21,7 +21,7 @@ class User(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey(
-        User, verbose_name='Пользователь', on_delete=models.CASCADE)
+        User, verbose_name='Пользователь', on_delete=models.CASCADE, related_name='user')
     image = models.ImageField(verbose_name='Картинка поста')
     name = models.CharField('Название', max_length=100)
     description = models.TextField('Описание', default='')
@@ -29,10 +29,10 @@ class Post(models.Model):
 
 class Like(models.Model):
     user = models.ForeignKey(
-        User, verbose_name='Пользователь', null=True, on_delete=models.CASCADE)
+        User, verbose_name='Пользователь', null=True, on_delete=models.CASCADE, related_name='user_like')
     post = models.ForeignKey(
-        Post, verbose_name='Публикация', null=True, on_delete=models.CASCADE)
+        Post, verbose_name='Публикация', null=True, on_delete=models.CASCADE, related_name='post_like')
     added_date = models.DateField('Дата лайка', auto_now_add=True)
-
+    liked = models.BooleanField(verbose_name='Лайкнули?', default=True)
     def __str__(self):
         return self.user + ' -> ' + self.post + ' ->' + self.added_date

@@ -32,7 +32,8 @@ class UserBot:
 
     def signup(self):
         creds = self.generate_creds()
-    
+        auth = requests.get(self.api_host+'/api/social/')
+
     def create_psot(self):
         ...
     
