@@ -6,8 +6,6 @@ from progress.bar import IncrementalBar
 
 config.encoding = 'utf-8'
 
-
-
 NUMBER_OF_USERS = config('NUMBER_OF_USERS')
 MAX_POSTS_PER_USER = config('MAX_POSTS_PER_USER')
 MAX_LIKES_PER_USER = config('MAX_LIKES_PER_USER')
@@ -46,8 +44,7 @@ class UserBot:
         }
 
         response = requests.post(url, json=payload)
-
-        return response.text
+        return response.json()
 
     def login(self, creds):
         url = self.api_host + "/api/social/user/login/"
@@ -76,13 +73,17 @@ class UserBot:
         }
         
         files = [
-            ('image', ('PHZ_0733.jpg', open(
-                'D:/develop/pypr/django_ecommerce/tokyo_rest/media/PHZ_0733.jpg', 'rb'), 'image/jpeg'))
+            ('image', ('PHZ_0733.jpg', open('PHZ_0733.jpg', 'rb'), 'image/jpeg'))
         ]
 
-        response = requests.post(url, json=payload, files=files)
+        response = requests.post(url, data=payload, files=files)
 
-        return response
+        return response.json()
+    
+    def get_analytics(self):
+        url = self.api_host + '/api/social/analytics'
+        response = requests.request("GET", url)
+        return response.json()
 
     def like_post(self, user_ind, post_ind, like_value):
         url = self.api_host + "/api/social/like/"
@@ -93,26 +94,26 @@ class UserBot:
         response = requests.request(
             "POST", url, json=payload)
 
-        print(response.text)
 
     def bot_loop(self):
         users = []
         posts = []
-        # user_bar = IncrementalBar('Users', max = self.number_of_users)
-        # posts_bar = IncrementalBar('Posts', max = self.max_posts_per_user)
-        # likes_bar = IncrementalBar('Likes', max = self.max_like_per_user)git sta
+        user_bar = IncrementalBar('Users', max = self.number_of_users)
+        posts_bar = IncrementalBar('Posts', max = self.max_posts_per_user*self.number_of_users)
+        likes_bar = IncrementalBar('Likes', max = self.max_like_per_user*self.number_of_users)
         for _ in range(self.number_of_users):
-            # user_bar.next()
+            user_bar.next()
             data = self.signup(_)
-            users.append(['user'])
+
+            users.append(data['id'])
             for i in range(self.max_posts_per_user):
-                # posts_bar.next()
-                posts.append(self.create_post(_, i)['post'])
+                posts_bar.next()
+                posts.append(self.create_post(users[_], i)['post'])
 
         for user_id in users:
-            for like in self.max_like_per_user:
+            for like in range(self.max_like_per_user):
+                likes_bar.next()
                 post = choice(posts)
-                # likes_bar.next()
                 self.like_post(
                     user_id,
                     post,
@@ -127,9 +128,7 @@ def main():
         MAX_LIKES_PER_USER,
         API_HOST
     )
-    userbot.signup(
-        5
-    )
+    userbot.bot_loop()
 
 
 if __name__ == "__main__":

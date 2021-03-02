@@ -37,6 +37,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'login',
             'password'
         )
+    
 
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:

@@ -63,8 +63,10 @@ class UserAuthAPI(APIView):
         print(user)
         if user.is_valid():
             user.save()
+            user = SocialUser.objects.get(login=user.data['login'])
+            print(user.id)
             return Response({
-                "status": "success"
+                "id": user.id
             })
         else:
             return Response(status=403)
@@ -77,22 +79,31 @@ class LikeCreateView(APIView):
         like = LikeCreateSerializer(data=request.data)
         if like.is_valid():
             like.save()
-            return Response({
-                "like": like.id
-            })
+            print(like.data)
+            try:
+                like = Like.objects.filter(
+                    user=like.data['user'],
+                    post=like.data['post']
+                )[0]
+                return Response({
+                    "like": like.id
+                })
+            except Exception:
+                return Response({})
+
         else:
             return Response(status=400)
 
 class PostCreateView(APIView):
-    renderer_classes=(JSONRenderer,)    
     permission_classes=(permissions.AllowAny, )
-
+    parser_classes=(MultiPartParser,)
+    renderer_classes=(JSONRenderer,)    
     def post(self, request):
         data = request.data
+        print(request.data)
         data['user'] = SocialUser.objects.get(
             pk=request.data['user_id']
         )
-        del data['user_id']
         post = Post.objects.create(
             user=data['user'],
             name=data['name'],
