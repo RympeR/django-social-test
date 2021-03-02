@@ -18,7 +18,7 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import generics
 from .models import SocialUser, Post, Like, Count
 from django.db.models import Q
-
+from datetime import datetime
 
 # class UserDetailView(generics.RetrieveAPIView):
 #     queryset = SocialUser.objects.get()
@@ -45,6 +45,7 @@ class UserAuthAPI(APIView):
             Q(password=request.data['password'])
         )
         if user:
+            user.last_login=datetime.now()
             user.save()
             
             return Response({
