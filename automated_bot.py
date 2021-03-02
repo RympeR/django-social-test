@@ -2,8 +2,11 @@ import random
 from decouple import config
 import requests
 from random import randint, choice
+from progress.bar import IncrementalBar
 
 config.encoding = 'utf-8'
+
+
 
 NUMBER_OF_USERS = config('NUMBER_OF_USERS')
 MAX_POSTS_PER_USER = config('MAX_POSTS_PER_USER')
@@ -95,16 +98,21 @@ class UserBot:
     def bot_loop(self):
         users = []
         posts = []
+        # user_bar = IncrementalBar('Users', max = self.number_of_users)
+        # posts_bar = IncrementalBar('Posts', max = self.max_posts_per_user)
+        # likes_bar = IncrementalBar('Likes', max = self.max_like_per_user)git sta
         for _ in range(self.number_of_users):
+            # user_bar.next()
             data = self.signup(_)
-            print(data)
             users.append(['user'])
             for i in range(self.max_posts_per_user):
+                # posts_bar.next()
                 posts.append(self.create_post(_, i)['post'])
 
         for user_id in users:
             for like in self.max_like_per_user:
                 post = choice(posts)
+                # likes_bar.next()
                 self.like_post(
                     user_id,
                     post,
