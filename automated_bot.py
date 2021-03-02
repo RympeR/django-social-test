@@ -10,6 +10,7 @@ MAX_POSTS_PER_USER = config('MAX_POSTS_PER_USER')
 MAX_LIKES_PER_USER = config('MAX_LIKES_PER_USER')
 API_HOST = config('API_HOST')
 
+
 class UserBot:
 
     def __init__(self, number_of_users, max_posts_per_user, max_like_per_user, api_host):
@@ -40,32 +41,28 @@ class UserBot:
             'login': creds[1],
             'password': creds[2]
         }
-        headers = {
-            'content-type':'multipart/form-data; '
-        }
-        response = requests.request("POST", url,headers=headers, data=payload)
+
+        response = requests.post(url, json=payload)
+
         return response.text
 
     def login(self, creds):
         url = self.api_host + "/api/social/user/login/"
 
-        payload = {'login': creds[0],
-                   'password': creds[1]}
-        headers = {
-            'content-type':'multipart/form-data; '
+        payload = {
+            "login": creds[0],
+            "password": creds[1]
         }
         response = requests.request(
-            "GET", url,headers=headers, data=payload)
+            "GET", url, json=payload)
+
+        return response.json()
 
     def get_profile(self, ind):
 
-        url = self.api_host + "/api/social/user/get-profile/1"
-        headers = {
-            'content-type':'multipart/form-data; '
-        }
-        response = requests.request("GET", url,headers=headers)
-
-        print(response.text)
+        url = self.api_host + "/api/social/user/get-profile/"+str(ind)
+        response = requests.request("GET", url)
+        return response.json()
 
     def create_post(self, user_ind, name, image_name=''):
         url = self.api_host + "/api/social/post/create/"
@@ -74,19 +71,13 @@ class UserBot:
             'user_id': user_ind,
             'name': name
         }
+        
         files = [
-            (
-                'image', ('PHZ_0733.jpg',
-                          open('PHZ_0733.jpg', 'rb'),
-                          'image/jpeg')
-            )
+            ('image', ('PHZ_0733.jpg', open(
+                'D:/develop/pypr/django_ecommerce/tokyo_rest/media/PHZ_0733.jpg', 'rb'), 'image/jpeg'))
         ]
-        headers = {
-            'content-type':'multipart/form-data; '
-        }
 
-        response = requests.request(
-            "POST", url, headers=headers, data=payload, files=files)
+        response = requests.post(url, json=payload, files=files)
 
         return response
 
@@ -96,11 +87,8 @@ class UserBot:
         payload = {'post': post_ind,
                    'user': user_ind,
                    'liked': like_value}
-        headers = {
-            'content-type':'multipart/form-data; '
-        }
         response = requests.request(
-            "POST", url,headers=headers, data=payload)
+            "POST", url, json=payload)
 
         print(response.text)
 
@@ -113,18 +101,28 @@ class UserBot:
             users.append(['user'])
             for i in range(self.max_posts_per_user):
                 posts.append(self.create_post(_, i)['post'])
-            
+
         for user_id in users:
             for like in self.max_like_per_user:
                 post = choice(posts)
                 self.like_post(
                     user_id,
                     post,
-                    True if randint(1, 3)==2 else False
+                    True if randint(1, 3) == 2 else False
                 )
+
+
 def main():
-    userbot = UserBot(NUMBER_OF_USERS, MAX_POSTS_PER_USER, MAX_LIKES_PER_USER, API_HOST)
-    userbot.bot_loop()
+    userbot = UserBot(
+        NUMBER_OF_USERS,
+        MAX_POSTS_PER_USER,
+        MAX_LIKES_PER_USER,
+        API_HOST
+    )
+    userbot.signup(
+        5
+    )
+
 
 if __name__ == "__main__":
     main()

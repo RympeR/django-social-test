@@ -65,3 +65,4 @@ class LikeCreateSerializer(serializers.ModelSerializer):
             defaults={"liked":validated_data.get('liked')}
         )
         return like
+

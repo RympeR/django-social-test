@@ -16,7 +16,7 @@ import os
 from rest_framework.parsers import FileUploadParser, MultiPartParser
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import generics
-from .models import SocialUser, Post, Like
+from .models import SocialUser, Post, Like, Count
 from django.db.models import Q
 
 
@@ -38,14 +38,15 @@ class UserAPI(APIView):
 class UserAuthAPI(APIView):
     renderer_classes=(JSONRenderer,)    
     permission_classes=(permissions.AllowAny, )
-    parser_classes=(MultiPartParser,)
     def get(self, request):
+        print(request.data)
         user =  get_object_or_404(SocialUser,
             Q(login=request.data['login'])&
             Q(password=request.data['password'])
         )
         if user:
-            user.save() 
+            user.save()
+            
             return Response({
                 "id": user.id,
                 "auth_token": 'test',
@@ -59,10 +60,11 @@ class UserAuthAPI(APIView):
 
     def post(self, request):
         user =UserCreateSerializer(data=request.data)
+        print(user)
         if user.is_valid():
             user.save()
             return Response({
-                "user": user.id
+                "status": "success"
             })
         else:
             return Response(status=403)
@@ -70,7 +72,6 @@ class UserAuthAPI(APIView):
 class LikeCreateView(APIView):
     renderer_classes=(JSONRenderer,)    
     permission_classes=(permissions.AllowAny, )
-    parser_classes=(MultiPartParser,)
     def post(self, request):
         print(request.data)
         like = LikeCreateSerializer(data=request.data)
@@ -85,7 +86,6 @@ class LikeCreateView(APIView):
 class PostCreateView(APIView):
     renderer_classes=(JSONRenderer,)    
     permission_classes=(permissions.AllowAny, )
-    parser_classes=(MultiPartParser,)
 
     def post(self, request):
         data = request.data
@@ -125,12 +125,16 @@ class PostAPI(APIView):
             }
         )
     
-class Analytics(generics.ListAPIView):
+class Analytics(APIView):
     renderer_classes=(JSONRenderer,)    
     permission_classes=(permissions.AllowAny, )
-    parser_classes=(MultiPartParser,)
-    serializer = LikeSerializer
-    def get_queryset(self):
+
+    def get(self, *args):
+        print(self.request.GET)
         likes = Like.objects.filter(added_date__gte=self.request.GET['begin_date'], added_date__lte=self.request.GET['end_date']).values('added_date').annotate(dcoun=Count('id'))
-        return likes
+        return Response(
+            {
+                "stats" : likes
+            }
+        )
 
