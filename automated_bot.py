@@ -2,6 +2,8 @@ import random
 from decouple import config
 import requests
 from random import randint, choice
+# from progres.bar import Increment
+
 
 config.encoding = 'utf-8'
 
@@ -43,8 +45,7 @@ class UserBot:
         }
 
         response = requests.post(url, json=payload)
-
-        return response.text
+        return response.json()
 
     def login(self, creds):
         url = self.api_host + "/api/social/user/login/"
@@ -73,13 +74,17 @@ class UserBot:
         }
         
         files = [
-            ('image', ('PHZ_0733.jpg', open(
-                'D:/develop/pypr/django_ecommerce/tokyo_rest/media/PHZ_0733.jpg', 'rb'), 'image/jpeg'))
+            ('image', ('PHZ_0733.jpg', open('PHZ_0733.jpg', 'rb'), 'image/jpeg'))
         ]
 
-        response = requests.post(url, json=payload, files=files)
+        response = requests.post(url, data=payload, files=files)
 
-        return response
+        return response.json()
+    
+    def get_analytics(self):
+        url = self.api_host + '/api/social/analytics'
+        response = requests.request("GET", url)
+        return response.json()
 
     def like_post(self, user_ind, post_ind, like_value):
         url = self.api_host + "/api/social/like/"
@@ -97,14 +102,15 @@ class UserBot:
         posts = []
         for _ in range(self.number_of_users):
             data = self.signup(_)
-            print(data)
-            users.append(['user'])
+            users.append(data['id'])
+            print(users)
             for i in range(self.max_posts_per_user):
-                posts.append(self.create_post(_, i)['post'])
-
+                posts.append(self.create_post(users[_], i)['post'])
+                print(posts)
         for user_id in users:
-            for like in self.max_like_per_user:
+            for like in range(self.max_like_per_user):
                 post = choice(posts)
+                print(f'Liked post->f{post}')
                 self.like_post(
                     user_id,
                     post,
@@ -119,9 +125,7 @@ def main():
         MAX_LIKES_PER_USER,
         API_HOST
     )
-    userbot.signup(
-        5
-    )
+    print(userbot.bot_loop())
 
 
 if __name__ == "__main__":

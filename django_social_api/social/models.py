@@ -7,7 +7,7 @@ class SocialUser(models.Model):
     login = models.CharField('Логин', max_length=255, unique=True)
     password = models.CharField('Пароль', max_length=255)
     last_login = models.TimeField(
-        verbose_name='Время последнего логина', auto_now=True)
+        verbose_name='Время последнего логина', auto_now_add=True)
     last_request = models.TimeField(
         verbose_name='Время последнего запроса', auto_now=True)
 
